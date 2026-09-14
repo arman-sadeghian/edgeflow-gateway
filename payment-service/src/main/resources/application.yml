@@ -1,0 +1,6 @@
+server:
+  port: 12337
+
+spring:
+  application:
+    name: payment-service

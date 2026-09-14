@@ -1,0 +1,6 @@
+server:
+  port: 12335
+
+spring:
+  application:
+    name: user-service
