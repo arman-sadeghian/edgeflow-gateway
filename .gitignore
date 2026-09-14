@@ -36,3 +36,13 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Logs ###
+*.log
+
+### Environment / Secrets ###
+.env
+.env.*
+
+### Windows ###
+Thumbs.db
