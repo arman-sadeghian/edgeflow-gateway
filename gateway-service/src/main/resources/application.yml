@@ -17,10 +17,18 @@ spring:
           issuer-uri: http://localhost:12338/realms/edgeflow
 
   cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            user-service:
+              - uri: http://localhost:12335
+              - uri: http://localhost:12340
+
     gateway:
       routes:
         - id: user-service
-          uri: http://localhost:12335
+          uri: lb://user-service
           predicates:
             - Path=/api/users/**
           filters:
