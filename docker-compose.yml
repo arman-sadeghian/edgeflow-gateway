@@ -30,6 +30,7 @@ services:
     container_name: edgeflow-user-1
     environment:
       SERVER_PORT: 8080
+      INSTANCE_NAME: user-1
     ports:
       - "18081:8080"
     networks:
@@ -42,6 +43,7 @@ services:
     container_name: edgeflow-user-2
     environment:
       SERVER_PORT: 8080
+      INSTANCE_NAME: user-2
     ports:
       - "18083:8080"
     networks:

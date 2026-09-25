@@ -12,13 +12,17 @@ public class UserController {
     @Value("${server.port}")
     private String port;
 
+    @Value("${INSTANCE_NAME:${HOSTNAME:unknown}}")
+    private String instanceName;
+
     @GetMapping("/{id}")
     public Map<String, Object> getUser(@PathVariable Long id) {
         return Map.of(
                 "id", id,
                 "name", "Arman",
                 "service", "user-service",
-                "instance", port
+                "instance", instanceName
+
         );
     }
 }
