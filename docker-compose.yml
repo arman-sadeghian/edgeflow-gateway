@@ -1,0 +1,117 @@
+services:
+
+  redis:
+    image: redis:7-alpine
+    container_name: edgeflow-redis
+    ports:
+      - "18085:6379"
+    networks:
+      - edgeflow-network
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.3
+    container_name: edgeflow-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "18084:8080"
+    volumes:
+      - ./infra/keycloak/edgeflow-realm.json:/opt/keycloak/data/import/edgeflow-realm.json:ro
+    networks:
+      - edgeflow-network
+    restart: unless-stopped
+
+  user-service-1:
+    build:
+      context: ./user-service
+    container_name: edgeflow-user-1
+    environment:
+      SERVER_PORT: 8080
+    ports:
+      - "18081:8080"
+    networks:
+      - edgeflow-network
+    restart: unless-stopped
+
+  user-service-2:
+    build:
+      context: ./user-service
+    container_name: edgeflow-user-2
+    environment:
+      SERVER_PORT: 8080
+    ports:
+      - "18083:8080"
+    networks:
+      - edgeflow-network
+    restart: unless-stopped
+
+  payment-service:
+    build:
+      context: ./payment-service
+    container_name: edgeflow-payment
+    environment:
+      SERVER_PORT: 8080
+    ports:
+      - "18082:8080"
+    networks:
+      - edgeflow-network
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: ./gateway-service
+    container_name: edgeflow-gateway
+    environment:
+      SERVER_PORT: 8080
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      KEYCLOAK_ISSUER_URI: http://localhost:18084/realms/edgeflow
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/edgeflow/protocol/openid-connect/certs
+
+      USER_SERVICE_1_URL: http://user-service-1:8080
+      USER_SERVICE_2_URL: http://user-service-2:8080
+      PAYMENT_SERVICE_URL: http://payment-service:8080
+
+    ports:
+      - "18080:8080"
+    depends_on:
+      - redis
+      - keycloak
+      - user-service-1
+      - user-service-2
+      - payment-service
+    networks:
+      - edgeflow-network
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: edgeflow-prometheus
+    ports:
+      - "18086:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - edgeflow-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.6.0
+    container_name: edgeflow-grafana
+    ports:
+      - "18087:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - edgeflow-network
+    restart: unless-stopped
+
+networks:
+  edgeflow-network:
+    name: edgeflow-network
+    driver: bridge
